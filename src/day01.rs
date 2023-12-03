@@ -25,23 +25,52 @@ fn main() {
 }
 
 fn first(input: impl Iterator<Item = String>) -> i32 {
-    let digits = input.map(|line: String| line.chars().filter(|c| c.is_digit(10)).collect());
+    let patterns = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+    first_last(input, &patterns)
+        .filter_map(|number| number.parse::<i32>().ok())
+        .sum()
+}
 
-    let first_last = digits
-        .map(|digits: String| vec![digits.chars().next(), digits.chars().last()])
-        .map(|first_last: Vec<Option<char>>| {
-            first_last
-                .into_iter()
-                .filter_map(|c: Option<char>| c)
-                .collect()
-        });
+fn first_last<'a>(
+    input: impl Iterator<Item = String> + 'a,
+    patterns: &'a Vec<&'a str>,
+) -> impl Iterator<Item = String> + 'a {
+    input
+        .map(move |line| (first_match(&line, &patterns), last_match(&line, &patterns)))
+        .filter_map(|first_last| {
+            if let (Some(first), Some(last)) = first_last {
+                Some(format!("{first}{last}"))
+            } else {
+                None
+            }
+        })
+}
 
-    first_last.flat_map(|s: String| s.parse::<i32>()).sum()
+fn first_match(line: &str, patterns: &Vec<&str>) -> Option<String> {
+    patterns
+        .iter()
+        .filter_map(|pattern| line.match_indices(pattern).next())
+        .min_by_key(|(index, _)| index.clone())
+        .map(|(_, pattern)| pattern.to_string())
+}
+
+fn last_match(line: &str, patterns: &Vec<&str>) -> Option<String> {
+    patterns
+        .iter()
+        .filter_map(|pattern| line.rmatch_indices(pattern).next())
+        .max_by_key(|(index, _)| index.clone())
+        .map(|(_, pattern)| pattern.to_string())
 }
 
 fn second(input: impl Iterator<Item = String>) -> i32 {
-    let replaced = input.map(|line: String| substitute(line));
-    first(replaced)
+    let patterns = vec![
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "one", "two", "three", "four", "five",
+        "six", "seven", "eight", "nine",
+    ];
+    first_last(input, &patterns)
+        .map(|line| substitute(line))
+        .filter_map(|number| number.parse::<i32>().ok())
+        .sum()
 }
 
 fn substitute(line: String) -> String {
