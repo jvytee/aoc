@@ -7,7 +7,7 @@ fn main() {
     let input = io::stdin()
         .lock()
         .lines()
-        .filter_map(|res: Result<String, io::Error>| res.ok());
+        .map_while(Result::ok);
 
     let arg: u8 = env::args()
         .nth(1)
@@ -33,10 +33,10 @@ fn first(input: impl Iterator<Item = String>) -> i32 {
 
 fn first_last<'a>(
     input: impl Iterator<Item = String> + 'a,
-    patterns: &'a Vec<&'a str>,
+    patterns: &'a [&'a str],
 ) -> impl Iterator<Item = String> + 'a {
     input
-        .map(move |line| (first_match(&line, &patterns), last_match(&line, &patterns)))
+        .map(move |line| (first_match(&line, patterns), last_match(&line, patterns)))
         .filter_map(|first_last| {
             if let (Some(first), Some(last)) = first_last {
                 Some(format!("{first}{last}"))
@@ -46,19 +46,19 @@ fn first_last<'a>(
         })
 }
 
-fn first_match(line: &str, patterns: &Vec<&str>) -> Option<String> {
+fn first_match(line: &str, patterns: &[&str]) -> Option<String> {
     patterns
         .iter()
         .filter_map(|pattern| line.match_indices(pattern).next())
-        .min_by_key(|(index, _)| index.clone())
+        .min_by_key(|(index, _)| *index)
         .map(|(_, pattern)| pattern.to_string())
 }
 
-fn last_match(line: &str, patterns: &Vec<&str>) -> Option<String> {
+fn last_match(line: &str, patterns: &[&str]) -> Option<String> {
     patterns
         .iter()
         .filter_map(|pattern| line.rmatch_indices(pattern).next())
-        .max_by_key(|(index, _)| index.clone())
+        .max_by_key(|(index, _)| *index)
         .map(|(_, pattern)| pattern.to_string())
 }
 
@@ -68,7 +68,7 @@ fn second(input: impl Iterator<Item = String>) -> i32 {
         "six", "seven", "eight", "nine",
     ];
     first_last(input, &patterns)
-        .map(|line| substitute(line))
+        .map(substitute)
         .filter_map(|number| number.parse::<i32>().ok())
         .sum()
 }
