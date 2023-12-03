@@ -4,10 +4,7 @@ use std::{
 };
 
 fn main() {
-    let input = io::stdin()
-        .lock()
-        .lines()
-        .map_while(Result::ok);
+    let input = io::stdin().lock().lines().map_while(Result::ok);
 
     let arg: u8 = env::args()
         .nth(1)
