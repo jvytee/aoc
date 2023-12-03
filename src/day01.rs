@@ -1,15 +1,31 @@
-use std::io::{self, BufRead};
+use std::{
+    env,
+    io::{self, BufRead},
+};
 
 fn main() {
-    let input = io::stdin().lock();
-    println!("{}", first(input));
+    let input = io::stdin()
+        .lock()
+        .lines()
+        .filter_map(|res: Result<String, io::Error>| res.ok());
+
+    let arg: u8 = env::args()
+        .nth(1)
+        .unwrap_or("1".to_string())
+        .parse()
+        .unwrap_or(1);
+
+    let res = if arg != 1 {
+        second(input)
+    } else {
+        first(input)
+    };
+
+    println!("{res}");
 }
 
-fn first<T: BufRead>(input: T) -> i32 {
-    let digits = input
-        .lines()
-        .filter_map(|res: Result<String, io::Error>| res.ok())
-        .map(|line: String| line.chars().filter(|c: &char| c.is_digit(10)).collect());
+fn first(input: impl Iterator<Item = String>) -> i32 {
+    let digits = input.map(|line: String| line.chars().filter(|c| c.is_digit(10)).collect());
 
     let first_last = digits
         .map(|digits: String| vec![digits.chars().next(), digits.chars().last()])
@@ -23,10 +39,43 @@ fn first<T: BufRead>(input: T) -> i32 {
     first_last.flat_map(|s: String| s.parse::<i32>()).sum()
 }
 
+fn second(input: impl Iterator<Item = String>) -> i32 {
+    let replaced = input.map(|line: String| substitute(line));
+    first(replaced)
+}
+
+fn substitute(line: String) -> String {
+    let substitutes = vec![
+        ("one", "1"),
+        ("two", "2"),
+        ("three", "3"),
+        ("four", "4"),
+        ("five", "5"),
+        ("six", "6"),
+        ("seven", "7"),
+        ("eight", "8"),
+        ("nine", "9"),
+    ];
+
+    let mut res = line.clone();
+    let mut rem = line.as_str();
+    while rem.len() > 1 {
+        for (word, digit) in &substitutes {
+            if rem.starts_with(word) {
+                res = res.replacen(word, digit, 1);
+                rem = &res;
+                break;
+            }
+        }
+
+        rem = &rem[1..];
+    }
+
+    res
+}
+
 #[cfg(test)]
 mod tests {
-    use std::io::BufReader;
-
     use super::*;
 
     #[test]
@@ -34,11 +83,27 @@ mod tests {
         let input = "1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
-treb7uchet";
+treb7uchet"
+            .lines()
+            .map(|line| line.to_string());
 
-        let reader = BufReader::new(input.as_bytes());
-        let res = first(reader);
-
+        let res = first(input);
         assert_eq!(res, 142);
+    }
+
+    #[test]
+    fn test_second() {
+        let input = "two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen"
+            .lines()
+            .map(|line| line.to_string());
+
+        let res = second(input);
+        assert_eq!(res, 281);
     }
 }
