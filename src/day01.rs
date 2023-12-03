@@ -86,21 +86,9 @@ fn substitute(line: String) -> String {
         ("nine", "9"),
     ];
 
-    let mut res = line.clone();
-    let mut rem = line.as_str();
-    while rem.len() > 1 {
-        for (word, digit) in &substitutes {
-            if rem.starts_with(word) {
-                res = res.replacen(word, digit, 1);
-                rem = &res;
-                break;
-            }
-        }
-
-        rem = &rem[1..];
-    }
-
-    res
+    substitutes
+        .iter()
+        .fold(line, |res, (word, digit)| res.replace(word, digit))
 }
 
 #[cfg(test)]
