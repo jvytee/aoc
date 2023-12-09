@@ -13,15 +13,15 @@ fn main() {
         .unwrap_or(1);
 
     let res = if arg != 1 {
-        second(input)
+        part_two(input)
     } else {
-        first(input)
+        part_one(input)
     };
 
     println!("{res}");
 }
 
-fn first(input: impl Iterator<Item = String>) -> i32 {
+fn part_one(input: impl Iterator<Item = String>) -> i32 {
     let patterns = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
     first_last(input, &patterns)
         .filter_map(|number| number.parse::<i32>().ok())
@@ -43,6 +43,17 @@ fn first_last<'a>(
         })
 }
 
+fn part_two(input: impl Iterator<Item = String>) -> i32 {
+    let patterns = vec![
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "one", "two", "three", "four", "five",
+        "six", "seven", "eight", "nine",
+    ];
+    first_last(input, &patterns)
+        .map(substitute)
+        .filter_map(|number| number.parse::<i32>().ok())
+        .sum()
+}
+
 fn first_match(line: &str, patterns: &[&str]) -> Option<String> {
     patterns
         .iter()
@@ -57,17 +68,6 @@ fn last_match(line: &str, patterns: &[&str]) -> Option<String> {
         .filter_map(|pattern| line.rmatch_indices(pattern).next())
         .max_by_key(|(index, _)| *index)
         .map(|(_, pattern)| pattern.to_string())
-}
-
-fn second(input: impl Iterator<Item = String>) -> i32 {
-    let patterns = vec![
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "one", "two", "three", "four", "five",
-        "six", "seven", "eight", "nine",
-    ];
-    first_last(input, &patterns)
-        .map(substitute)
-        .filter_map(|number| number.parse::<i32>().ok())
-        .sum()
 }
 
 fn substitute(line: String) -> String {
@@ -101,7 +101,7 @@ treb7uchet"
             .lines()
             .map(|line| line.to_string());
 
-        let res = first(input);
+        let res = part_one(input);
         assert_eq!(res, 142);
     }
 
@@ -117,7 +117,7 @@ zoneight234
             .lines()
             .map(|line| line.to_string());
 
-        let res = second(input);
+        let res = part_two(input);
         assert_eq!(res, 281);
     }
 }

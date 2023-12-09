@@ -13,15 +13,15 @@ fn main() {
         .unwrap_or(1);
 
     let res = if arg != 1 {
-        second(input)
+        part_two(input)
     } else {
-        first(input)
+        part_one(input)
     };
 
     println!("{res}");
 }
 
-fn first(input: impl Iterator<Item = String>) -> i32 {
+fn part_one(input: impl Iterator<Item = String>) -> i32 {
     input.flat_map(|line| part_numbers(line.as_str())).sum()
 }
 
@@ -53,7 +53,7 @@ fn collect_numbers(
     (res, index)
 }
 
-fn second(_input: impl Iterator<Item = String>) -> i32 {
+fn part_two(_input: impl Iterator<Item = String>) -> i32 {
     0
 }
 
@@ -76,7 +76,7 @@ mod tests {
             .lines()
             .map(|line| line.to_string());
 
-        let res = first(input);
+        let res = part_one(input);
         assert_eq!(res, 4361);
     }
 }
