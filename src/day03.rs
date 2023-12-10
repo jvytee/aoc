@@ -26,31 +26,45 @@ fn part_one(input: impl Iterator<Item = String>) -> i32 {
 }
 
 fn part_numbers(line: &str) -> Vec<i32> {
-    let (digits, offsets) = line
+    let (pos_num, _) = line
         .match_indices(|c: char| c.is_ascii_digit())
         .fold((Vec::new(), 0), collect_numbers);
 
-    // let (symbols, indices) = 
+    let (symbols, _): (Vec<usize>, Vec<&str>) = line
+        .match_indices(|c: char| !(c == '.' || c.is_ascii_digit()))
+        .unzip();
 
-    digits
+    dbg!(&pos_num, &symbols);
+
+    let (_, numbers): (Vec<usize>, Vec<i32>) = pos_num
+        .into_iter()
+        .filter(|(pos, num)| has_symbol(*pos, *num, &symbols))
+        .unzip();
+    numbers
 }
 
 fn collect_numbers(
-    (acc, pos): (Vec<i32>, usize),
+    (acc, pos): (Vec<(usize, i32)>, usize),
     (index, digit): (usize, &str),
-) -> (Vec<i32>, usize) {
-    let acc_last = if index == pos + 1 {
-        acc[acc.len() - 1]
+) -> (Vec<(usize, i32)>, usize) {
+    dbg!(&index, &digit);
+    let mut res = acc.clone();
+    let (pos_last, num_last) = if index > pos + 1 {
+        (index, 0)
     } else {
-        0
+        res.pop().unwrap_or((index, 0))
     };
 
-    let res_last = acc_last * 10 + digit.parse::<i32>().unwrap_or(0);
-    let mut res = acc;
-    res.pop();
-    res.push(res_last);
+    let res_last = num_last * 10 + digit.parse::<i32>().unwrap_or(0);
+    res.push((pos_last, res_last));
 
     (res, index)
+}
+
+fn has_symbol(position: usize, number: i32, symbols: &[usize]) -> bool {
+    let start = position.saturating_sub(1) as u32;
+    let end = (position as u32 + number.ilog10()).saturating_add(1);
+    (start..=end).any(|index| symbols.contains(&(index as usize)))
 }
 
 fn part_two(_input: impl Iterator<Item = String>) -> i32 {
