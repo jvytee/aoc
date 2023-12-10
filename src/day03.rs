@@ -34,8 +34,6 @@ fn part_numbers(line: &str) -> Vec<i32> {
         .match_indices(|c: char| !(c == '.' || c.is_ascii_digit()))
         .unzip();
 
-    dbg!(&pos_num, &symbols);
-
     let (_, numbers): (Vec<usize>, Vec<i32>) = pos_num
         .into_iter()
         .filter(|(pos, num)| has_symbol(*pos, *num, &symbols))
@@ -47,7 +45,6 @@ fn collect_numbers(
     (acc, pos): (Vec<(usize, i32)>, usize),
     (index, digit): (usize, &str),
 ) -> (Vec<(usize, i32)>, usize) {
-    dbg!(&index, &digit);
     let mut res = acc.clone();
     let (pos_last, num_last) = if index > pos + 1 {
         (index, 0)
