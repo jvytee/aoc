@@ -22,11 +22,13 @@ fn main() {
 }
 
 fn part_one(input: impl Iterator<Item = String>) -> i32 {
-    // input.flat_map(|line| part_numbers(line.as_str())).sum()
-    input.fold(("".to_string(), 0), part_numbers).1
+    input.fold((Vec::new(), Vec::new(), 0), part_numbers).2
 }
 
-fn part_numbers((prev, acc): (String, i32), line: String) -> (String, i32) {
+fn part_numbers(
+    (pos_num_prev, symbols_prev, acc): (Vec<(usize, i32)>, Vec<usize>, i32),
+    line: String,
+) -> (Vec<(usize, i32)>, Vec<usize>, i32) {
     let (pos_num, _) = line
         .match_indices(|c: char| c.is_ascii_digit())
         .fold((Vec::new(), 0), collect_numbers);
@@ -35,20 +37,13 @@ fn part_numbers((prev, acc): (String, i32), line: String) -> (String, i32) {
         .match_indices(|c: char| !(c == '.' || c.is_ascii_digit()))
         .unzip();
 
-    let (symbols_prev, _): (Vec<usize>, Vec<&str>) = prev
-        .match_indices(|c: char| !(c == '.' || c.is_ascii_digit()))
-        .unzip();
-
-    let (_, numbers): (Vec<usize>, Vec<i32>) = pos_num
-        .into_iter()
+    let numbers: Vec<i32> = pos_num
+        .iter()
         .filter(|(pos, num)| {
             has_symbol(*pos, *num, &symbols) || has_symbol(*pos, *num, &symbols_prev)
         })
-        .unzip();
-
-    let (pos_num_prev, _) = prev
-        .match_indices(|c: char| c.is_ascii_digit())
-        .fold((Vec::new(), 0), collect_numbers);
+        .map(|(_, number)| *number)
+        .collect();
 
     let (_, numbers_prev): (Vec<usize>, Vec<i32>) = pos_num_prev
         .into_iter()
@@ -56,7 +51,8 @@ fn part_numbers((prev, acc): (String, i32), line: String) -> (String, i32) {
         .unzip();
 
     (
-        line,
+        pos_num,
+        symbols,
         acc + numbers.iter().sum::<i32>() + numbers_prev.iter().sum::<i32>(),
     )
 }
